@@ -50,5 +50,9 @@ class User extends Authenticatable
     public function payments(){
         return $this->hasManyThrough(Payment::class,Order::class);
     }
+    
+    public function image(){
+        return $this->morphOne(Image::class,'imageable');
+    }
 
 }
