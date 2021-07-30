@@ -30,6 +30,10 @@
                 <a class="navbar-brand" href="{{ route('product.index')}}">
                    Products
                 </a>
+                @inject('cartService', 'App\Services\CartService')
+                <a class="navbar-brand" href="{{ route('carts.index')}}">
+                   Cart ({{$cartService->countProducts()}})
+                </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>

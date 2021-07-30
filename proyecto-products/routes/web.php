@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\MainController;
+use App\Http\Controllers\ProductCartController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -34,6 +36,9 @@ Route::match(['put','patch'],'/product/{product}/update',[ProductController::cla
 ->name('product.update');
 Route::delete('/product/{product}/destroy',[ProductController::class,'destroy'])
 ->name('product.destroy');
+Route::resource('carts',CartController::class)->only('index');
+
+Route::resource('products.carts',ProductCartController::class)->only('store','destroy');
 Auth::routes();
 
 
