@@ -5,19 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\Payment;
+use App\Services\CartService;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $cartService;
+    public function __construct(CartService $cartService)
     {
-        //
+        $this->cartService = $cartService;
+        $this->middleware('auth');
     }
-
     /**
      * Show the form for creating a new resource.
      *
@@ -25,7 +23,8 @@ class OrderController extends Controller
      */
     public function create()
     {
-        //
+        $cart = $this->cartService->getFromCookie();
+        return view('orders.create',compact('cart'));
     }
 
     /**
@@ -36,51 +35,19 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Order $order)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Order $order)
-    {
-        //
+        // $user = Auth::user();
+        $user = $request->user();
+        $order = $user->orders()->create([
+            'status'=>'pending',
+        ]);
+        $cart = $this->cartService->getFromCookie();
+        $cartProductsWithQuantity = $cart->products
+        ->mapWithKeys(function($product){
+            $element[$product->id] = ['quantity'=>$product->pivot->quantity];
+            return $element;
+        });
+        
+        $order->products()->attach($cartProductsWithQuantity->toArray());
+        return redirect()->route('orders.payments.create',compact('order'));
     }
 }

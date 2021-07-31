@@ -6,6 +6,8 @@
         You cart is empty
     </div>
 @else
+    <h2 class="text-center mb-3"><strong>You cart total $ {{$cart->total}}</strong></h2>
+    <a href="{{route('orders.create')}}" class="btn btn-success mb-3">Start Order</a>
     <div class="container flex flex-wrap">
         @foreach($cart->products as $product)
             <div class="card w-3/12">

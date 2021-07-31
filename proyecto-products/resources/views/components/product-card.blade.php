@@ -1,8 +1,9 @@
 <img style="height:350px;object-fit:cover" src="{{asset($product->images->first()->path)}}">
+<p class="text-right"><strong>{{$product->price}}</strong></p>
 <p>{{$product->description}}</p>
-<p>{{$product->price}}</p>
 <p>{{$product->stock}} left</p>
 @if(isset($cart))
+    <p><strong>{{$product->pivot->quantity}} in you cart ($ {{$product->total}})</strong></p>
     <form action="{{route('products.carts.destroy',['product'=>$product->id,'cart'=>$cart->id])}}" method="POST">
         @csrf
         @method('DELETE')
