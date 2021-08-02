@@ -43,7 +43,7 @@
                             <a href="{{route('products.edit',$value->id)}}" class="btn btn-link">Edit Product</a>
                             {{-- <a href="{{route('products.delete',$value->id)}}" class="btn btn-link">Edit Product</a> --}}
 
-                            <form action="{{route('products.destroy',$value->id)}}" method="POST">
+                            <form action="{{route('products.destroy',$value)}}" method="POST">
                                 @csrf
                                 @method('delete')
                                 <button type="submit" class="btn btn-link">Delete</button>

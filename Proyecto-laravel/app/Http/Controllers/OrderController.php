@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Services\CartService;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $cartService;
+    public function __construct(CartService $cartService)
     {
-        //
+        $this->cartService = $cartService;
+        $this->middleware('auth');
     }
 
     /**
@@ -24,7 +24,12 @@ class OrderController extends Controller
      */
     public function create()
     {
-        //
+        $cart = $this->cartService->getFromCookie();
+        if(!isset($cart) || $cart->products->isEmpty()){
+            return redirect()->back()
+            ->withErrors('The cart is empty');
+        }
+        return view('orders.create',compact('cart'));
     }
 
     /**
@@ -35,41 +40,30 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        return DB::transaction(function () use ($request){
+            $user = $request->user();
+            $order = $user->orders()->create([
+                'status'=>'pending'
+            ]);
+            $cart = $this->cartService->getFromCookie();
+            $cartProductsWithQuantity = $cart->products
+            ->mapWithKeys(function($product){
+                $element[$product->id] = ['quantity'=>$product->pivot->quantity];
+                $quantity = $product->pivot->quantity;
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Order $order)
-    {
-        //
-    }
+                if($product->stock < $quantity){
+                    throw ValidationException::withMessages([
+                        'product' => "Stock agotado",
+                    ]);
+                } 
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
+                $product->decrement('stock',$quantity);
+                return $element;
+            });
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
+            $order->products()->attach($cartProductsWithQuantity->toArray());
+            return redirect()->route('orders.payments.create',['order'=>$order]);
+        },5);
     }
 
     /**

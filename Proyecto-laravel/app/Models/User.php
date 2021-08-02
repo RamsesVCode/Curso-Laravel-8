@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Payment;
 use App\Models\Order;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -64,5 +64,17 @@ class User extends Authenticatable
     }
     public function image(){
         return $this->morphOne(Image::class,'imageable');
+    }
+    public function isAdmin(){
+        return $this->admin_since !=null 
+            && $this->admin_since->lessThanOrEqualTo(now()); 
+    }
+    public function setPasswordAttribute($password){
+        $this->attributes['password'] = bcrypt($password);
+    }
+    public function getProfileImageAttribute(){
+        return $this->image()
+            ? "images/{$this->image->path}"
+            : 'https://www.gravatar.com/avatar/404?d=mp';
     }
 }
