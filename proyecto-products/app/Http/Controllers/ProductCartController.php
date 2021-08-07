@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
 use App\Services\CartService;
+use Illuminate\Validation\ValidationException;
 
 class ProductCartController extends Controller
 {
@@ -26,6 +26,17 @@ class ProductCartController extends Controller
         $quantity = $cart->products()->find($product->id)
         ->pivot
         ->quantity ?? 0;
+        // dump($product->id);
+        //stock 10
+        // dd($quantity);//3
+        if($product->stock < $quantity+1){
+            throw ValidationException::withMessages([
+                'product'=>'the stock is empty',
+            ]);
+        }
+
+
+
         $cookie = $this->cartService->makeCookie($cart);
         $cart->products()->syncWithoutDetaching([$product->id=>['quantity'=>$quantity+1]]);
         return redirect()->back()->cookie($cookie);

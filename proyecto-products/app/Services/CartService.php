@@ -4,7 +4,11 @@ use Illuminate\Support\Facades\Cookie;
 use App\Models\Cart;
 
 class CartService{
-    public $cookieName = 'cart';
+    public function __construct()
+    {
+        $this->cookieName = config('cart.cookie.name');
+        $this->cookieExpiration = config('cart.cookie.expiration');
+    }
     public function getFromCookie(){
         $cart_id = Cookie::get($this->cookieName);
         $cart = Cart::find($cart_id);

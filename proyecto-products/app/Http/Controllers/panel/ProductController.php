@@ -1,29 +1,35 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Panel;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 
-use App\Models\Product;
+// use App\Models\Product;
+use App\Models\PanelProduct;
 use App\Http\Requests\ProductRequest;
+use App\Scopes\AvailableScope;
+
 class ProductController extends Controller
 {
-    public function __construct(){
-        $this->middleware('auth');
-        // ->except(['index','create']);
-    }
+    // public function __construct(){
+    //     $this->middleware('auth');
+    //     // ->except(['index','create']);
+    // }
 
     public function index(){
-        $products = Product::all();
+        $products = PanelProduct::without('images')->get();
+        // $products = PanelProduct::with('images')->get();
+        // return view('product.index',compact('products'));
+        // $products = Product::withoutGlobalScope(AvailableScope::class)->get();
         return view('product.index',compact('products'));
     }
+    
     public function create(){
         return view('product.create');
     }
     
     public function store(ProductRequest $request){
-        $product = Product::create([
+        $product = PanelProduct::create([
             'title' => $request->title,
             'description' => $request->description,
             'price' => $request->price,
@@ -33,32 +39,22 @@ class ProductController extends Controller
         return redirect()->route('product.index');
     }
     public function show($id){
-        $product = Product::find($id);
+        $product = PanelProduct::find($id);
+        // dd($product->images);
         return view('product.show',compact('product'));
     }
     public function edit($id){
-        $product = Product::find($id);
+        $product = PanelProduct::find($id);
         return view('product.edit',compact('product'));
     }
 
-    public function update(Request $request, Product $product){
-        $request->validate([
-            'title' => 'required|min:5|max:255',
-            'description' => 'required|min:5|max:255',
-            'price' => 'required|numeric',
-            'stock' => 'required|numeric',
-            'status' => 'required|in:available,unavailable',
-        ]);
-
-
+    public function update(ProductRequest $request, PanelProduct $product){
         $product->update($request->all());
         return view('product.edit',compact('product'));
     }
-    public function destroy(Product $product){
+    public function destroy(PanelProduct $product){
         $product->delete();
-
         // session()->flash('success','Delete success');
-
         return redirect()->route('product.index')
         ->with('success','Delete success');
     }

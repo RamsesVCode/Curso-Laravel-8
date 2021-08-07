@@ -27,9 +27,11 @@
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
                 </a>
-                <a class="navbar-brand" href="{{ route('product.index')}}">
-                   Products
-                </a>
+                @if(optional(auth()->user())->isAdmin())
+                    <a class="navbar-brand" href="{{ route('panel.index')}}">
+                    Panel
+                    </a>
+                @endif
                 @inject('cartService', 'App\Services\CartService')
                 <a class="navbar-brand" href="{{ route('carts.index')}}">
                    Cart ({{$cartService->countProducts()}})
@@ -66,6 +68,9 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                        {{ __('Profile') }}
+                                    </a>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">

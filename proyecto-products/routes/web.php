@@ -6,10 +6,10 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPaymentController;
 use App\Http\Controllers\ProductCartController;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\ProductController;
-
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,27 +24,25 @@ use App\Http\Controllers\ProductController;
 
 Route::get('/', [MainController::class,'index']);
 
-Route::get('/product/index',[ProductController::class,'index'])
-->name('product.index');
-Route::get('/product/create',[ProductController::class,'create'])
-->name('product.create');
-Route::post('/product/store',[ProductController::class,'store'])
-->name('product.store');
-Route::get('/product/{id}/show',[ProductController::class,'show'])
-->name('product.show');
-Route::get('/product/{id}/edit',[ProductController::class,'edit'])
-->name('product.edit');
-Route::match(['put','patch'],'/product/{product}/update',[ProductController::class,'update'])
-->name('product.update');
-Route::delete('/product/{product}/destroy',[ProductController::class,'destroy'])
-->name('product.destroy');
-Route::resource('carts',CartController::class)->only('index');
 
-Route::resource('products.carts',ProductCartController::class)->only('store','destroy');
+
+Route::resource('carts',CartController::class)
+->only('index');
+
+Route::resource('products.carts',ProductCartController::class)
+->only('store','destroy');
+
 Route::resource('orders',OrderController::class)->only(['create','store']);
 
 Route::resource('orders.payments',OrderPaymentController::class)->only(['create','store']);
-Auth::routes();
+Auth::routes([
+    'verify'=>true,
+]);
+
+Route::get('/profile/edit',[ProfileController::class,'edit'])
+->name('profile.edit');
+Route::put('/profile/update',[ProfileController::class,'update'])
+->name('profile.update');
 
 
 // Route::resource('products',[ProductController::class]);

@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Order;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -21,9 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'admin_since',
+        // 'admin_since',
     ];
 
+    protected $dates = [
+        'admin_since',
+    ];
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -53,6 +56,13 @@ class User extends Authenticatable
     
     public function image(){
         return $this->morphOne(Image::class,'imageable');
+    }
+    public function isAdmin(){
+        return $this->admin_since != null &&
+               $this->admin_since->lessThanOrEqualTo(now());
+    }
+    public function setPasswordAttribute($password){
+        $this->attributes['password'] = bcrypt($password);
     }
 
 }

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Services\CartService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
@@ -35,19 +37,28 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        // $user = Auth::user();
-        $user = $request->user();
-        $order = $user->orders()->create([
-            'status'=>'pending',
-        ]);
-        $cart = $this->cartService->getFromCookie();
-        $cartProductsWithQuantity = $cart->products
-        ->mapWithKeys(function($product){
-            $element[$product->id] = ['quantity'=>$product->pivot->quantity];
-            return $element;
-        });
-        
-        $order->products()->attach($cartProductsWithQuantity->toArray());
-        return redirect()->route('orders.payments.create',compact('order'));
+        return DB::transaction(function() use ($request) {
+            // $user = Auth::user();
+            $user = $request->user();
+            $order = $user->orders()->create([
+                'status'=>'pending',
+            ]);
+            $cart = $this->cartService->getFromCookie();
+            $cartProductsWithQuantity = $cart->products
+            ->mapWithKeys(function($product){
+                $element[$product->id] = ['quantity'=>$product->pivot->quantity];
+                $quantity = $product->pivot->quantity;
+                if($product->stock < $quantity){
+                    throw ValidationException::withMessages([
+                        'product'=>'The stock is empty',
+                    ]);
+                }
+                $product->decrement('stock',$quantity);
+                return $element;
+            });
+            
+            $order->products()->attach($cartProductsWithQuantity->toArray());
+            return redirect()->route('orders.payments.create',compact('order'));
+        },5);
     }
 }
